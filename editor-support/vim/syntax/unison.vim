@@ -44,9 +44,9 @@ execute 'syn match uTypedef  "\v(' . b:anyName . '\.)*' . b:lowerName . '\s*:"'
 execute 'syn match uType     "\v'  . b:upperName . '"'
 
 " Comments
-" syn match   uLineComment      "--.*$"
-" syn region  uBlockComment     start="{-"   end="-}" fold 
-syn match  uBelowFold	        "^---\(\_.\)*" fold
+syn match   uLineComment      "--.*$"
+syn region  uBlockComment     start="{-"   end="-}" fold 
+syn region  uBelowFold	      start="^---\(\_.\)*" end="\%$" fold
 
 syn match uDebug "^[A-Za-z]*>.*\(\_s\s*\S[^\n]*\)*" 
 
