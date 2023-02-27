@@ -4,28 +4,21 @@ elseif exists("b:current_syntax")
   finish
 endif
 
-let b:upperName = "\<[A-Z_][A-Za-z0-9_'!]*\>"
-let b:lowerName = "\<[a-z_][A-Za-z0-9_'!]*\>"
-let b:anyName   = "\<[a-zA-Z_][A-Za-z0-9_'!]*\>"
+let b:upperName = "\\<[A-Z_][A-Za-z0-9_'!]*\\>"
+let b:lowerName = "\\<[a-z_][A-Za-z0-9_'!]*\\>"
+let b:anyName   = "\\<[a-zA-Z_][A-Za-z0-9_'!]*\\>"
+let b:termName  = '(' . b:anyName . '\.)*' . b:lowerName 
+" let b:fnDef = b:termName . "(\\s+ " . b:lowerName . ")*\\s*="
+let b:fnDef =  "add\\(\\s\\+" . b:lowerName . "\\)*="
 
-syn match uOperator "\v((\=[-!#$%&*+/<=>\\?@^|~]+)|[-!#$%&*+/<>?@^|~]+)"
-syn match uDelimiter "[\[\[(){},.]"
-syn match uArrow "->"
-"x"
-"x"" Strings and constants
-syn match   uSpecialChar	contained "\\\([0-9]\+\|o[0-7]\+\|x[0-9a-fA-F]\+\|[\"\\'&\\abfnrtv]\|^[A-Z^_\[\\\]]\)"
-syn match   uSpecialChar	contained "\\\(NUL\|SOH\|STX\|ETX\|EOT\|ENQ\|ACK\|BEL\|BS\|HT\|LF\|VT\|FF\|CR\|SO\|SI\|DLE\|DC1\|DC2\|DC3\|DC4\|NAK\|SYN\|ETB\|CAN\|EM\|SUB\|ESC\|FS\|GS\|RS\|US\|SP\|DEL\)"
-syn match   uSpecialCharError	contained "\\&\|'''\+"
-syn region  uString		start=+"+  skip=+\\\\\|\\"+  end=+"+  contains=uSpecialChar
-syn match   uCharacter		"[^a-zA-Z0-9_']'\([^\\]\|\\[^']\+\|\\'\)'"lc=1 contains=uSpecialChar,uSpecialCharError
-syn match   uCharacter		"^'\([^\\]\|\\[^']\+\|\\'\)'" contains=uSpecialChar,uSpecialCharErro
-syn match   uNumber "\v[-+]?\d+(\.\d+)?([eE][-+]?\d+)?"
-syn match   uNumber "\v[-+]?0[xX]_*[0-9A-Fa-f]+(\.[0-9A-Fa-f]+)?([pP][-+]?\d+)?"
-syn match   uNumber "\v[-+]?0[oO][0-7]+"
 
 syn keyword uKeyword ability cases do else forall handle if let match module structural then type unique use where with
 
 syn match uBoolean "\<\(true\|false\)\>"
+
+syn match uOperator "\v((\=[-!#$%&*+/<=>\\?@^|~]+)|[-!#$%&*+/<>?@^|~]+)"
+syn match uDelimiter "[\[\[(){},.]"
+syn match uArrow "->"
 
 " Docs
 syn region  uDocBlock         start="{{" end="}}"  extend fold contains=uDocEmbed,uLink,uDocDirective,uEmbedCode
@@ -38,10 +31,28 @@ syn match   uEmbedCode
      \ "\(^\s*[`~]\{3,\}\)\_.\{-}\1\s*$"
      \ contains=ALLBUT,uDocBlock
 
-execute 'syn match uVariable "\v'  . b:lowerName . '"'
-execute 'syn match uTermName "\v(' . b:anyName . '\.)*' . b:lowerName . '"'
-execute 'syn match uTypedef  "\v(' . b:anyName . '\.)*' . b:lowerName . '\s*:"'
-execute 'syn match uType     "\v'  . b:upperName . '"'
+syn match uVariable "\v<[a-z_][A-Za-z0-9_'!]*>"
+syn match uType     "\v<[A-Z_][A-Za-z0-9_'!]*>"
+syn match uTermName "\v(<[a-zA-Z_][A-Za-z0-9_'!]*>)*\.<[a-z_][A-Za-z0-9_'!]*>"
+syn match uTypeDef  "\v(<[a-zA-Z_][A-Za-z0-9_'!]*\.)*[a-z_][A-Za-z0-9_'!]*\s*:"
+syn match uFnDef    "\v(<[a-zA-Z_][A-Za-z0-9_'!]*\.)*[a-z_][A-Za-z0-9_'!]*(\s+[a-z_][A-Za-z0-9_'!]*)+\s\="
+
+
+" Strings and constants
+syn match   uSpecialChar	contained "\\\([0-9]\+\|o[0-7]\+\|x[0-9a-fA-F]\+\|[\"\\'&\\abfnrtv]\|^[A-Z^_\[\\\]]\)"
+syn match   uSpecialChar	contained "\\\(BS\|HT\|LF\|VT\|FF\|CR\|SP\|DEL\)"
+syn match   uSpecialCharError	contained "\\&\|'''\+"
+syn region  uString		start=+"+  skip=+\\\\\|\\"+  end=+"+  contains=uSpecialChar
+
+syn match   uCharacter		"\v\?."
+syn match   uCharacter		"\v\?\\."
+syn match   uCharacter		"\v\?\\[x][0-9a-fA-F]+"
+syn match   uCharacter		"\v\?\\[oO][0-7]+"
+
+
+syn match   uNumber "\v[-+]?\d+(\.\d+)?([eE][-+]?\d+)?"
+syn match   uNumber "\v[-+]?0[xX]_*[0-9A-Fa-f]+(\.[0-9A-Fa-f]+)?([pP][-+]?\d+)?"
+syn match   uNumber "\v[-+]?0[oO][0-7]+"
 
 " Comments
 syn match   uLineComment      "--.*$"
@@ -61,13 +72,12 @@ if version >= 508 || !exists("did_u_syntax_inits")
     command -nargs=+ HiLink hi def link <args>
   endif
 
-  HiLink uArrow            Typedef
+  HiLink uArrow            Special
   HiLink uBelowFold        Comment
   HiLink uBlockComment     uComment
   HiLink uBoolean          Boolean
-  HiLink uCharacter        Character
+  HiLink uCharacter        String
   HiLink uComment          Comment
-  HiLink uConditional      Conditional
   HiLink uConditional      Conditional
   HiLink uDebug            Debug
   HiLink uDelimiter        Delimiter
@@ -75,73 +85,28 @@ if version >= 508 || !exists("did_u_syntax_inits")
   HiLink uDocDirective     uImport
   HiLink uDocEmbed         uImport
   HiLink uFloat            Float
+  HiLink uFnDef            Function
   HiLink uImport           Include
   HiLink uKeyword          Keyword
   HiLink uLineComment      uComment
   HiLink uLink             uType
-  HiLink uName             Error
-  "Identifier
+  HiLink uName             Identifier
   HiLink uNumber           Number
-  HiLink uOperator         Operator
+  HiLink uOperator         Special
   HiLink uPunctuation      SpecialChar
   HiLink uPragma           SpecialComment
-  HiLink uSpecialChar      SpecialChar
+  HiLink uSpecialChar      String
   HiLink uSpecialCharError Error
   HiLink uStatement        Statement
   HiLink uString           String
   HiLink uType             Type
-  HiLink uTypedef          Typedef
-  HiLink uTermName         Function
-  HiLink uVariable         Identifier
+  HiLink uTypedef          Number
+  HiLink uTermName         String
+  HiLink uVariable         Variable
   delcommand HiLink
 endif
 
 
 let b:current_syntax = "unison"
-"	*Comment	any comment
-"
-"	*Constant	any constant
-"	 String		a string constant: "this is a string"
-"	 Character	a character constant: 'c', '\n'
-"	 Number		a number constant: 234, 0xff
-"	 Boolean	a boolean constant: TRUE, false
-"	 Float		a floating point constant: 2.3e10
-"
-"	*Identifier	any variable name
-"	 Function	function name (also: methods for classes)
-"
-"	*Statement	any statement
-"	 Conditional	if, then, else, endif, switch, etc.
-"	 Repeat		for, do, while, etc.
-"	 Label		case, default, etc.
-"	 Operator	"sizeof", "+", "*", etc.
-"	 Keyword	any other keyword
-"	 Exception	try, catch, throw
-"
-"	*PreProc	generic Preprocessor
-"	 Include	preprocessor #include
-"	 Define		preprocessor #define
-"	 Macro		same as Define
-"	 PreCondit	preprocessor #if, #else, #endif, etc.
-"
-"	*Type		int, long, char, etc.
-"	 StorageClass	static, register, volatile, etc.
-"	 Structure	struct, union, enum, etc.
-"	 Typedef	A typedef
-"
-"	*Special	any special symbol
-"	 SpecialChar	special character in a constant
-"	 Tag		you can use CTRL-] on this
-"	 Delimiter	character that needs attention
-"	 SpecialComment	special things inside a comment
-"	 Debug		debugging statements
-"
-"	*Underlined	text that stands out, HTML links
-"
-"	*Ignore		left blank, hidden  |hl-Ignore|
-"
-"	*Error		any erroneous construct
-"
-"	*Todo		anything that needs extra attention; mostly the
-"			keywords TODO FIXME and XXX
-" Options for vi: ts=8 sw=2 sts=2 nowrap noexpandtab ft=vim
+
+" Options for vi: ts=2 sw=2 sts=2 nowrap noexpandtab ft=vim
